@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Contagem com Start e Stop</title>
+</head>    
+
+<body>
+    <div class="container">
+        <div class="card letter-display">
+            <h2>Letra Atual</h2>
+            <div class="current-letter">?</div>
+            <button class="draw-button" id="drawButton" onclick="drawLetter()">Sortear Letra</button>
+            <button class="stop-button" id="stopButton" onclick="stopTimer()" style="display: none;">Stop</button>
+        </div>
+
+        <div class="card config-section">
+            <h2>Configurações</h2>
+            <label>
+                Tempo (segundos):
+                <input type="number" id="timeInput" value="60" min="1">
+            </label>
+            <div class="timer" id="timer">1:00</div>
+        </div>
+
+        <div class="card drawn-letters">
+            <h2>Letras Sorteadas</h2>
+            <div class="letter-grid" id="drawnLettersList"></div>
+        </div>
+    </div>
+
+    <script>
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        let drawnLetters = [];
+        let timeLeft = 60;
+        let timerInterval;
+        let isTimerRunning = false;
+
+        const drawButton = document.getElementById('drawButton');
+        const stopButton = document.getElementById('stopButton');
+
+        function drawLetter() {
+            if (isTimerRunning) return;
+
+            const availableLetters = alphabet.filter(letter => !drawnLetters.includes(letter));
+            
+            if (availableLetters.length === 0) {
+                alert('Todas as letras já foram sorteadas!');
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableLetters.length);
+            const newLetter = availableLetters[randomIndex];
+            
+            document.querySelector('.current-letter').textContent = newLetter;
+            drawnLetters.push(newLetter);
+            updateDrawnLettersList();
+            
+            // inicia o timer
+            timeLeft = parseInt(document.getElementById('timeInput').value);
+            startTimer();
+
+            drawButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+        }
+
+        function updateDrawnLettersList() {
+            const container = document.getElementById('drawnLettersList');
+            container.innerHTML = '';
+            
+            drawnLetters.forEach(letter => {
+                const letterBox = document.createElement('div');
+                letterBox.className = 'letter-box';
+                letterBox.textContent = letter;
+                container.appendChild(letterBox);
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = true;
+
+            document.getElementById('timeInput').disabled = true;
+
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    stopTimer();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+
+            drawButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+
+            document.getElementById('timeInput').disabled = false;
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        document.getElementById('timeInput').addEventListener('change', function(e) {
+            if (e.target.value < 1) e.target.value = 1;
+            if (!isTimerRunning) {
+                timeLeft = parseInt(e.target.value);
+                updateTimerDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
